@@ -62,7 +62,7 @@ public class GameManager
         this.identificator = identificators;
         this.serie = series;
         this.manufacture = manufactures;
-        this.years = years;
+        this.year = years;
     }
     public int? identificators { get; set; }
 
@@ -74,7 +74,7 @@ public class GameManager
     public string GetDeviceInfo()
     {
         string infoText = ("|identificator:" + identificator + "\n" + "|serie:" + serie + "\n" +
-        "|manufacture:" + manufactures + "\n" + "|year:" + years);
+        "|manufacture:" + manufacture + "\n" + "|year:" + year);
         return infoText;
     }
 }
