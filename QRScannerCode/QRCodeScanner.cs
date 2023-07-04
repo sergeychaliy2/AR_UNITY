@@ -6,20 +6,41 @@ using TMPro;
 using UnityEngine.UI;
 using System.Threading;
 using System.IO;
+using System;
+using System.Globalization;
 
 public class QRCodeScanner : MonoBehaviour
 {
     [SerializeField] private RawImage _rawImageBakgraund;
     [SerializeField] private AspectRatioFitter _aspectRatioFitter;
     [SerializeField] private TextMeshProUGUI _textOut;
+    [SerializeField] private TextMeshProUGUI _textDataLog;
     [SerializeField] private RectTransform _scanZone;
+    [SerializeField] private RectTransform _fieldDataLog;
     private bool _isCamAvaible;
     private WebCamTexture _cameraTexture;
     private static string fileName = "/note.txt";
     private string realPath = Application.persistentDataPath + fileName;
     // Start is called before the first frame update
+    public static DateTime Now { get; }
+    private string DataTimeFoo()
+    {
+        DateTime localDate = DateTime.Now;
+        DateTime utcDate = DateTime.UtcNow;
+        String[] cultureNames = { "ru-RU" };
+        string dataLogTime=null;
+
+        foreach (var cultureName in cultureNames)
+        {
+            var culture = new CultureInfo(cultureName);
+            dataLogTime =localDate.ToString(culture);
+            
+        }
+        return dataLogTime;
+    }
     void Start()
     {
+        ActiveSceneDataLog(_fieldDataLog, false);
         SetUpCamera();
     }
 
@@ -112,24 +133,70 @@ public class QRCodeScanner : MonoBehaviour
     }
     public void SaveDataAtFileButtonClick()
     {
-        StreamWriter writer = new StreamWriter(Application.persistentDataPath + fileName);
+        StreamWriter writer = new StreamWriter(Application.persistentDataPath + fileName,true);
 
         using (writer)
         {
-            writer.WriteLine(_textOut.text);
+            writer.WriteLine(DataTimeFoo()+"\n"+_textOut.text);
         }
         writer.Close();
     }
     public void OpenAndReadFileDataAsync()
     {
+        ActiveSceneDataLog(_fieldDataLog,true);
         StreamReader streamReader = new StreamReader(Application.persistentDataPath + fileName);
         using (streamReader)
         {
             string texts = streamReader.ReadToEnd();
-            _textOut.SetText(texts.ToString());
+            _textDataLog.SetText(texts.ToString());
         }
         Application.OpenURL(streamReader.ToString());
         streamReader.Close();
         Application.OpenURL(realPath);
+    }
+    public void ActiveSceneDataLog(RectTransform _fieldDataLogs,bool arg)
+    {
+        _fieldDataLogs.gameObject.SetActive(arg);
+    }
+    public void CloseSceneDataLog()
+    {
+        ActiveSceneDataLog(_fieldDataLog, false);
+    }
+    public void ClearFile()
+    {
+        StreamWriter writer = new StreamWriter(Application.persistentDataPath + fileName, false);
+
+        using (writer)
+        {
+            writer.WriteLine("");
+        }
+        _textDataLog.SetText("");
+        writer.Close(); ;
+    }
+    public void InputMenu(int value)
+    {
+        try
+        {
+            if (value == 0)
+            {
+                
+            }
+            else if (value == 1)
+            {
+                SaveDataAtFileButtonClick();
+            }
+            else if (value == 2)
+            {
+                OpenAndReadFileDataAsync();
+            }
+            else if (value == 3)
+            {
+                ClearFile();
+            }
+        }
+        catch(Exception ex)
+        {
+            _textOut.SetText(ex.Message);
+        }     
     }
 }
